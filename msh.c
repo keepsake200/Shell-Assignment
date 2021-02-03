@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 // 
-// Copyright (c) 2016, 2017, 2020 Trevor Bakker 
+// Copyright (c) 2016, 2017, 2021 Trevor Bakker 
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -12,6 +12,7 @@
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 // 
+// 7f704d5f-9811-4b91-a918-57c1bb646b70
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -72,7 +73,7 @@ int main()
     // the correct amount at the end
     char *working_root = working_str;
 
-    // Tokenize the input stringswith whitespace used as the delimiter
+    // Tokenize the input strings with whitespace used as the delimiter
     while ( ( (argument_ptr = strsep(&working_str, WHITESPACE ) ) != NULL) && 
               (token_count<MAX_NUM_ARGUMENTS))
     {
