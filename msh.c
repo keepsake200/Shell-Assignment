@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 // 
-// Copyright (c) 2016, 2017, 2021 Trevor Bakker 
+// Copyright (c) 2016 Trevor Bakker 
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -38,12 +38,12 @@
 
 #define MAX_COMMAND_SIZE 255    // The maximum command-line size
 
-#define MAX_NUM_ARGUMENTS 5     // Mav shell only supports five arguments
+#define MAX_NUM_ARGUMENTS 5     // Mav shell only supports four arguments
 
 int main()
 {
 
-  char * cmd_str = (char*) malloc( MAX_COMMAND_SIZE );
+  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
 
   while( 1 )
   {
@@ -55,7 +55,7 @@ int main()
     // This while command will wait here until the user
     // inputs something since fgets returns NULL when there
     // is no input
-    while( !fgets (cmd_str, MAX_COMMAND_SIZE, stdin) );
+    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
 
     /* Parse input */
     char *token[MAX_NUM_ARGUMENTS];
@@ -66,15 +66,15 @@ int main()
     // parsed by strsep
     char *argument_ptr;                                         
                                                            
-    char *working_str  = strdup( cmd_str );                
+    char *working_string  = strdup( command_string );                
 
-    // we are going to move the working_str pointer so
+    // we are going to move the working_string pointer so
     // keep track of its original value so we can deallocate
     // the correct amount at the end
-    char *working_root = working_str;
+    char *head_ptr = working_string;
 
     // Tokenize the input strings with whitespace used as the delimiter
-    while ( ( (argument_ptr = strsep(&working_str, WHITESPACE ) ) != NULL) && 
+    while ( ( (argument_ptr = strsep(&working_string, WHITESPACE ) ) != NULL) && 
               (token_count<MAX_NUM_ARGUMENTS))
     {
       token[token_count] = strndup( argument_ptr, MAX_COMMAND_SIZE );
@@ -94,8 +94,9 @@ int main()
       printf("token[%d] = %s\n", token_index, token[token_index] );  
     }
 
-    free( working_root );
+    free( head_ptr );
 
   }
   return 0;
+  // e2520ca2-76f3-11ec-90d6-0242ac120003
 }
