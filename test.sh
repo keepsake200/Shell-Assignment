@@ -1,10 +1,11 @@
-#!/usr/bin/expect 
-set timeout 2
-spawn ./a.out 
+#!/usr/bin/expect -d
+set timeout 1
+spawn ./msh
 expect -- "msh>"
 send "ls\r"
 expect {
-  "^ ls\r\na.out  LICENSE\tMakefile  msh.c  README.md  test.sh  Useful-Examples" { exit 0 }
+  "^ ls\r\nLICENSE  Makefile  README.md  Useful-Examples  msh  msh.c  run.sh  test.sh\r\nmsh>" { exit 0 }
   default {  exit 1 }
 }
 exit 1
+
