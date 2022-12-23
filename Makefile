@@ -1,8 +1,8 @@
-a.out:
-	gcc msh.c
+msh:
+	gcc msh.c -o msh
 
 clean:
-	rm ./a.out
+	rm ./msh
 
-test: a.out
-	 ./test.sh
+test: msh
+	 ./run.sh
