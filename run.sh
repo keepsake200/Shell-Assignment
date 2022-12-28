@@ -1,11 +1,11 @@
 #!/bin/bash
 
-VAR=$(./test.sh)
+VAR=$(./$1.exp)
 
 if [ $? == 0 ]; then
-  echo "Pass: Program exited zero"
+  echo "Pass: Test $1 passed"
   exit 0
 else
-  echo "Fail: Program did not exit zero"
+  echo "Fail: Test $1 failed"
   exit 1
 fi

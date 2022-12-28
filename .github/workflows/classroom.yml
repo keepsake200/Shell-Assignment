@@ -15,8 +15,4 @@ jobs:
         image: ghcr.io/trevorbakker-uta/cse3320:latest
     steps:
       - uses: actions/checkout@v2
-      - name: Open Web Client Directory
-        run: |
-          ls
-          ps -p $$
       - uses: education/autograding@v1
