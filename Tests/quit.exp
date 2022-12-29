@@ -42,7 +42,12 @@ if {$force_conservative} {
 # -Don
 
 
-set timeout -1
+expect_before {
+    timeout { puts "timeout"; exit 1 }
+    eof     { puts "eof";     exit 1 }
+}
+
+set timeout 1
 spawn ./msh
 match_max 100000
 expect -exact "msh> "
