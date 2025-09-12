@@ -86,13 +86,15 @@ int main()
     }
 
     // Now print the tokenized input as a debug check
-    // \TODO Remove this code and replace with your shell functionality
-
-    int token_index  = 0;
-    for( token_index = 0; token_index < token_count; token_index ++ ) 
-    {
-      printf("token[%d] = %s\n", token_index, token[token_index] );  
+    
+    // Part 3 If the user enters nothing, continue the prompt again 
+    if(token[0] == NULL) {
+      continue;
     }
+
+    // Part 4 If the user enters quit or exit, exit with 0
+
+    // Part 5 If the user types a blank line, your shell will, quietly and with no other output, print another prompt and accept a new line of input.
 
     free( head_ptr );
 
