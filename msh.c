@@ -86,15 +86,56 @@ int main()
     }
 
     // Now print the tokenized input as a debug check
+    // Huh?
     
     // Part 3 If the user enters nothing, continue the prompt again 
     if(token[0] == NULL) {
       continue;
     }
-
     // Part 4 If the user enters quit or exit, exit with 0
+    else if(strcmp(token[0], "quit") == 0) {
+      exit(0);
+    }
+    else if (strcmp(token[0], "exit") == 0) {
+      exit(0);
+    }
+    // Part 9 handle cd
+    else if (strcmp(token[0], "cd") == 0) {
+      chdir(token[1]);
+    }
+    // Part 2 If the command is not supported your shell shall print the invalid command followed by “: Command not found.”
+    // Check for the 5 built ins, call exec, if it returns -1, print command found
+//     else if (strcmp(token[0], "exit") == 0 ||
+//     strcmp(token[0], "quit") == 0 ||
+//     strcmp(token[0], "history") == 0 ||
+//     strcmp(token[0], "!") == 0 ||
+//     strcmp(token[0], "fork") == 0 ||
+//     strcmp(token[0], "execvp") == 0) {
+    
+//     // Execvp needs more arguments?
+//     int check_validity = execvp(token[0]);
+//     if (check_validity == -1) {
+//         printf("%s, Command not found.\n", token[0]);
+//     }
+// }
 
-    // Part 5 If the user types a blank line, your shell will, quietly and with no other output, print another prompt and accept a new line of input.
+    // Part 6 Your version of Mav shell shall support up to 10 command line parameters in addition to the command.
+    //if( argc > 11) {
+    //  printf("Too many arguments");
+    //  continue;
+    //}
+
+    // Part 8 Mav shell shall be implemented using fork(), wait() and one of the exec family of functions. Your Mav shell shall not use system(). Use of system() will result in a grade of 0.
+
+
+    // Cleanup allocated memory
+    for( int i = 0; i < MAX_NUM_ARGUMENTS; i++ )
+    {
+      if( token[i] != NULL )
+      {
+        free( token[i] );
+      }
+    }
 
     free( head_ptr );
 
