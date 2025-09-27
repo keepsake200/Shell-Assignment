@@ -40,8 +40,53 @@
 
 #define MAX_NUM_ARGUMENTS 11 // Mav shell supports 10 arguments 
 
+//Your program shall block the SIGINT and SIGTSTP signals:
+static void handle_signal (int sig )
+{
+  printf ("Caught signal %d\n", sig );
+}
+
 int main()
 {
+
+  struct sigaction act;
+ 
+  /*
+    Zero out the sigaction struct
+  */ 
+  memset (&act, '\0', sizeof(act));
+ 
+  /*
+    Set the handler to use the function handle_signal()
+  */ 
+  act.sa_handler = &handle_signal;
+ 
+  /* 
+    Install the handler and check the return value.
+  */ 
+  if (sigaction(SIGTSTP , &act, NULL) < 0) {
+    perror ("sigaction: ");
+    return 1;
+  }
+ 
+  /*
+    Zero out the sigaction struct
+  */ 
+  memset (&act, '\0', sizeof(act));
+ 
+  /*
+    Set the handler to use the function handle_signal()
+  */ 
+  act.sa_handler = &handle_signal;
+ 
+  /* 
+    Install the handler and check the return value.
+  */ 
+  if (sigaction(SIGINT , &act, NULL) < 0) {
+    perror ("sigaction: ");
+    return 1;
+  }
+
 
   char *command_string = (char *)malloc(MAX_COMMAND_SIZE);
 
@@ -137,12 +182,13 @@ int main()
     // TODO Save last 50 commands and command line parameters
     // TODO Part 11 You shall print the history log, excluding blank line entries when the user types history
     else if (strcmp(token[0], "history" || "History") == 0) {
+      // Print history??
     }
 
     // TODO Part 12 The user can re-run any commnd in the history by typing !# where # is the number of the command to rerun.
     else if (strcmp(token[0], "!#") == 0) {
     }
-
+      // What the helly
 
     else
     {
@@ -165,8 +211,7 @@ int main()
         int status;
         wait(&status);
       }
-    } 
-    // Part 16 Your program shall block the SIGINT and SIGTSTP signals. See sigint.c in Code-Examples
+    }
 
     // Cleanup allocated memory
     for (int i = 0; i < MAX_NUM_ARGUMENTS; i++)
