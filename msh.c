@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #define WHITESPACE " \t\n" // We want to split our command line up into tokens
                            // so we need to define what delimits our tokens.
@@ -48,7 +49,6 @@ static void handle_signal (int sig )
 
 int main()
 {
-
   struct sigaction act;
  
   /*
@@ -92,6 +92,10 @@ int main()
 
   while (1)
   {
+    int redirect_found = 0;
+    int redirect_file_index = 0;
+    int pipe_found = 0;
+
     // Print out the msh prompt
     printf("msh> ");
 
@@ -100,8 +104,8 @@ int main()
     // This while command will wait here until the user
     // inputs something since fgets returns NULL when there
     // is no input
-    while (!fgets(command_string, MAX_COMMAND_SIZE, stdin))
-      ;
+    while (!fgets(command_string, MAX_COMMAND_SIZE, stdin));
+
 
     /* Parse input */
     char *token[MAX_NUM_ARGUMENTS];
@@ -134,31 +138,38 @@ int main()
       {
         token[token_count] = NULL;
       }
-      token_count++;
-      // ! I don't think there should be a closing bracket here, but there was. I deleted it.
-
-    // GENERALLY NOT SURE IF THESE ARE WORKING RIGHT, LOOP END CONDITION CONCERNS 
-    // TODO: Search the token array for | and set a variable pipe_found to 1
-    for(int i = 0; i <MAX_NUM_ARGUMENTS; i++) {
-      if  (strcmp(token[i], " | ") == 0) {
-        int pipe_found = 1;
-        break;
-      } else {
-        i++;
+      else
+      {
+        token_count++;
       }
     }
-    // TODO: Search the token array for > and set a varaible redirect_found to 1
-     for(int i = 0; i <MAX_NUM_ARGUMENTS; i++) {
-      if (strcmp(token[i], " > ") == 0) {
-        int redirect_found = 1;
-        break;
-      }
-      else {
-        i++;
+
+      // Search the token array for | and set a variable pipe_found to 1
+       for(int i = 0; i < token_count; i++) {
+          if (strcmp(token[i], "|") == 0) {
+            pipe_found = 1;
+            break;
+        }
       }
 
+      // Search the token array for > and set a varaible redirect_found to 1
+      for(int i = 0; i < token_count; i++) {
+
+        // i might be NULL if we previously found a pipe
+        // it is safe to skip over it because we already handled the pipe
+        if (token[i] == NULL) {
+          continue;
+        }
+
+        if (strcmp(token[i], ">") == 0) {
+          redirect_found = 1;
+          redirect_file_index = i+1;
+
+          // Trim off the end of the line
+          token[i] = NULL;
+          break;
+        }
       }
-    }
 
     // Part 3 If the user enters nothing, continue the prompt again
     if (token[0] == NULL)
@@ -181,37 +192,63 @@ int main()
     }
     // TODO Save last 50 commands and command line parameters
     // TODO Part 11 You shall print the history log, excluding blank line entries when the user types history
-    else if (strcmp(token[0], "history" || "History") == 0) {
+    //else if (strcmp(token[0], "history" || "History") == 0) {
       // Print history??
-    }
+   // }
 
     // TODO Part 12 The user can re-run any commnd in the history by typing !# where # is the number of the command to rerun.
-    else if (strcmp(token[0], "!#") == 0) {
-    }
+   // else if (strcmp(token[0], "!#") == 0) {
+  //   }
       // What the helly
 
-    else
-    {
-      // TODO handle |  if pipe_found == 1      ( pipe.c )
-      // TODO handle >  if redirect found == 1  ( pipe_redirect.c)
-      // ! ^^ Are these related to the loops I created earlier? and how? ^^
-      // else do the code below
+    // Running general commands
+    else {
       pid_t pid = fork();
-      if (pid == 0)
-      {
+      // Child process
+      if (pid == 0) {
+        if(redirect_found == 1) {
+        int fd = open(token[redirect_file_index], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+        if(fd < 0) {
+          perror("Can't open output file. " );
+          exit(0);
+        }
+
+        dup2(fd, 1);
+        close(fd);
+      }
+    
+      if(pipe_found == 1) {
+        int fd = open(token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+          if(fd < 0) {
+            perror("Can't open output file. " );
+            exit(0);                    
+          }
+
+          dup2(fd, 1);
+          close(fd);
+          // Trim off the > output part of the command
+          token[i] = NULL;
+      }
+
         int check_validity = execvp(token[0], &token[0]);
-        if (check_validity == -1)
-        {
+        if (check_validity == -1) {
           printf("%s, Command not found.\n", token[0]);
           exit(0);
         }
       }
-      else
-      {
+
+      else { // Same process
         int status;
         wait(&status);
       }
     }
+
+    // Keep track of the last 50 CLA's
+    // struct history_entry {
+    //   int num = 0;
+    //   int 
+
+    // };
 
     // Cleanup allocated memory
     for (int i = 0; i < MAX_NUM_ARGUMENTS; i++)
