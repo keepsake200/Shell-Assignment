@@ -42,13 +42,11 @@
 #define MAX_NUM_ARGUMENTS 11 // Mav shell supports 10 arguments 
 
 //Your program shall block the SIGINT and SIGTSTP signals:
-static void handle_signal (int sig )
-{
+static void handle_signal (int sig ) {
   printf ("Caught signal %d\n", sig );
 }
 
-int main()
-{
+int main() {
   struct sigaction act;
  
   /*
@@ -90,11 +88,12 @@ int main()
 
   char *command_string = (char *)malloc(MAX_COMMAND_SIZE);
 
-  while (1)
-  {
+  while (1) {
     int redirect_found = 0;
     int redirect_file_index = 0;
     int pipe_found = 0;
+    int pipe_index = 0;
+    int pfd[2];
 
     // Print out the msh prompt
     printf("msh> ");
@@ -111,8 +110,7 @@ int main()
     char *token[MAX_NUM_ARGUMENTS];
 
     int i;
-    for( i = 0 ; i < MAX_NUM_ARGUMENTS; i++ )
-    {
+    for( i = 0 ; i < MAX_NUM_ARGUMENTS; i++ ) {
       token[i] = NULL;
     }
 
@@ -148,6 +146,9 @@ int main()
        for(int i = 0; i < token_count; i++) {
           if (strcmp(token[i], "|") == 0) {
             pipe_found = 1;
+            pipe_index = i+1;
+            // Trim off the end of the line
+            token[i] = NULL;
             break;
         }
       }
@@ -199,37 +200,33 @@ int main()
     // TODO Part 12 The user can re-run any commnd in the history by typing !# where # is the number of the command to rerun.
    // else if (strcmp(token[0], "!#") == 0) {
   //   }
-      // What the helly
 
     // Running general commands
     else {
-      pid_t pid = fork();
-      // Child process
-      if (pid == 0) {
-        if(redirect_found == 1) {
-        int fd = open(token[redirect_file_index], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
-        if(fd < 0) {
-          perror("Can't open output file. " );
-          exit(0);
-        }
-
-        dup2(fd, 1);
-        close(fd);
-      }
-    
       if(pipe_found == 1) {
-        int fd = open(token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+        // Open the pipe
+        if ( pipe(pfd) == -1) { 
+          perror("pipe"); 
+          exit(EXIT_FAILURE);
+        } 
+      }
+
+      pid_t pid = fork();
+      if (pid == 0) { // Child process
+        if(redirect_found == 1) {
+          int fd = open(token[redirect_file_index], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
           if(fd < 0) {
             perror("Can't open output file. " );
-            exit(0);                    
+            exit(0);
           }
-
           dup2(fd, 1);
           close(fd);
-          // Trim off the > output part of the command
-          token[i] = NULL;
-      }
+        }
 
+        if (pipe_found == 1) {
+          dup2(pfd[1], 1);
+        }
+        
         int check_validity = execvp(token[0], &token[0]);
         if (check_validity == -1) {
           printf("%s, Command not found.\n", token[0]);
@@ -237,24 +234,49 @@ int main()
         }
       }
 
-      else { // Same process
+      else { // Parent process
+
+        // Fork again from the parent for piping
+        if (pipe_found == 1) {
+
+          pid_t pid2 = fork();
+          if (pid2 == 0) { // Second child process
+            if(redirect_found == 1) {
+              int fd = open(token[redirect_file_index], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+              if(fd < 0) {
+                perror("Can't open output file. " );
+                exit(0);
+              }
+
+              dup2(fd, 1);
+              close(fd);
+            }
+
+            // Replace stdin with the read end of the pipe
+            if (pipe_found == 1) {
+              dup2(pfd[0], 0);
+            }
+
+            int check_validity = execvp(token[pipe_index], &token[pipe_index]);
+            if (check_validity == -1) {
+              printf("%s, Command not found.\n", token[0]);
+              exit(0);
+            }
+          }
+        }
+
         int status;
         wait(&status);
+        if (pipe_found == 1) {
+          wait(&status);
+        }
       }
     }
 
-    // Keep track of the last 50 CLA's
-    // struct history_entry {
-    //   int num = 0;
-    //   int 
-
-    // };
 
     // Cleanup allocated memory
-    for (int i = 0; i < MAX_NUM_ARGUMENTS; i++)
-    {
-      if (token[i] != NULL)
-      {
+    for (int i = 0; i < MAX_NUM_ARGUMENTS; i++) {
+      if (token[i] != NULL) {
         free(token[i]);
       }
     }
