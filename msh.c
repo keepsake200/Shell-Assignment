@@ -47,7 +47,8 @@ static void handle_signal(int sig) {
 
 int main() {
   struct sigaction act;
-  //char history_arr[50][255];
+  char history_arr[50][255] = {0};
+  int history_counter = 0;
  
   /*
     Zero out the sigaction struct
@@ -119,8 +120,19 @@ int main() {
     // Pointer to point to the token
     // parsed by strsep
     char *argument_ptr;
+    char *working_string = NULL;
 
-    char *working_string = strdup(command_string);
+    // If they are rerunning a command, use that instead
+    if(command_string[0] == '!') {
+      int num = atoi(&command_string[1]);
+      working_string = strdup(history_arr[num]);
+    }
+    else {
+      working_string = strdup(command_string);
+    }
+     //Keeping track of history
+    strcpy(history_arr[history_counter], working_string);
+    history_counter++;
 
     // we are going to move the working_string pointer so
     // keep track of its original value so we can deallocate
@@ -141,17 +153,6 @@ int main() {
         token_count++;
       }
     }
-
-    //Keeping track of history
-    // if(token_count > 0 && token[0] != NULL) {
-
-
-    // }
-    // for(int i = 0; i < token_count; i++) {
-    //   if(token_count < 50) {
-    //    history_arr strcpy(token[i])
-    //   }
-    // }
 
       //Search the token array for |:
        for(int i = 0; i < token_count; i++) {
@@ -188,6 +189,7 @@ int main() {
     {
       continue;
     }
+
     //If the user enters quit or exit, exit with 0:
     else if (strcmp(token[0], "quit") == 0)
     {
@@ -203,15 +205,12 @@ int main() {
       chdir(token[1]);
     }
 
-    //Handle history:
+    //Printing history
     else if (strcmp(token[0], "history") == 0) {
-      //Run history function
+      for(int i = 0; i < history_counter; i++) {
+        printf("[%d] %s", i, history_arr[i]);
+      }
     }
-
-    //The user can re-run any commnd in the history by typing !# where # is the number of the command to rerun.
-    // else if (strcmp(token[0], "!") == 0) {
-    //printf(command[i]);
-    //   }
 
     //Running general commands
     else {
