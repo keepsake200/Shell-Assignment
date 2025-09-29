@@ -41,13 +41,13 @@
 
 #define MAX_NUM_ARGUMENTS 11 // Mav shell supports 10 arguments 
 
-//Your program shall block the SIGINT and SIGTSTP signals:
-static void handle_signal (int sig ) {
-  printf ("Caught signal %d\n", sig );
+//Block the SIGINT and SIGTSTP signals:
+static void handle_signal(int sig) {
 }
 
 int main() {
   struct sigaction act;
+  //char history_arr[50][255];
  
   /*
     Zero out the sigaction struct
@@ -142,22 +142,33 @@ int main() {
       }
     }
 
-      // Search the token array for | and set a variable pipe_found to 1
+    //Keeping track of history
+    // if(token_count > 0 && token[0] != NULL) {
+
+
+    // }
+    // for(int i = 0; i < token_count; i++) {
+    //   if(token_count < 50) {
+    //    history_arr strcpy(token[i])
+    //   }
+    // }
+
+      //Search the token array for |:
        for(int i = 0; i < token_count; i++) {
           if (strcmp(token[i], "|") == 0) {
             pipe_found = 1;
             pipe_index = i+1;
-            // Trim off the end of the line
+            //Trim off the end of the line
             token[i] = NULL;
             break;
         }
       }
 
-      // Search the token array for > and set a varaible redirect_found to 1
+      //Search the token array for > 
       for(int i = 0; i < token_count; i++) {
 
-        // i might be NULL if we previously found a pipe
-        // it is safe to skip over it because we already handled the pipe
+        //i might be NULL if we previously found a pipe
+        //it is safe to skip over it because we already handled the pipe
         if (token[i] == NULL) {
           continue;
         }
@@ -172,12 +183,12 @@ int main() {
         }
       }
 
-    // Part 3 If the user enters nothing, continue the prompt again
+    //If the user enters nothing, continue the prompt again:
     if (token[0] == NULL)
     {
       continue;
     }
-    // Part 4 If the user enters quit or exit, exit with 0
+    //If the user enters quit or exit, exit with 0:
     else if (strcmp(token[0], "quit") == 0)
     {
       exit(0);
@@ -186,22 +197,23 @@ int main() {
     {
       exit(0);
     }
-    // Part 9 handle cd
+    //Handle cd:
     else if (strcmp(token[0], "cd") == 0)
     {
       chdir(token[1]);
     }
-    // TODO Save last 50 commands and command line parameters
-    // TODO Part 11 You shall print the history log, excluding blank line entries when the user types history
-    //else if (strcmp(token[0], "history" || "History") == 0) {
-      // Print history??
-   // }
 
-    // TODO Part 12 The user can re-run any commnd in the history by typing !# where # is the number of the command to rerun.
-   // else if (strcmp(token[0], "!#") == 0) {
-  //   }
+    //Handle history:
+    else if (strcmp(token[0], "history") == 0) {
+      //Run history function
+    }
 
-    // Running general commands
+    //The user can re-run any commnd in the history by typing !# where # is the number of the command to rerun.
+    // else if (strcmp(token[0], "!") == 0) {
+    //printf(command[i]);
+    //   }
+
+    //Running general commands
     else {
       if(pipe_found == 1) {
         // Open the pipe
@@ -212,7 +224,9 @@ int main() {
       }
 
       pid_t pid = fork();
-      if (pid == 0) { // Child process
+
+      //Child process
+      if (pid == 0) { 
         if(redirect_found == 1) {
           int fd = open(token[redirect_file_index], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
           if(fd < 0) {
@@ -234,13 +248,16 @@ int main() {
         }
       }
 
-      else { // Parent process
+      //Parent process
+      else { 
 
-        // Fork again from the parent for piping
+        //Fork again from the parent for piping
         if (pipe_found == 1) {
 
           pid_t pid2 = fork();
-          if (pid2 == 0) { // Second child process
+
+          //Second child process
+          if (pid2 == 0) {
             if(redirect_found == 1) {
               int fd = open(token[redirect_file_index], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
               if(fd < 0) {
@@ -252,7 +269,7 @@ int main() {
               close(fd);
             }
 
-            // Replace stdin with the read end of the pipe
+            //Replace stdin with the read end of the pipe
             if (pipe_found == 1) {
               dup2(pfd[0], 0);
             }
@@ -274,7 +291,7 @@ int main() {
     }
 
 
-    // Cleanup allocated memory
+    //Cleanup allocated memory
     for (int i = 0; i < MAX_NUM_ARGUMENTS; i++) {
       if (token[i] != NULL) {
         free(token[i]);
